@@ -1,0 +1,49 @@
+KÜTÜPHANELERİN İMPORT EDİLMESİ
+import pandas
+import openai
+import requests
+import json
+
+#EXCEL'İN ÇEKİLMESİ VE DÜZENLENMESİ
+​
+ali_excel = pd.read_excel("C:\\Users\\Ali\\Desktop\\Carpettex_Bullet Points_NL - Kopya.xlsx")
+#ali_excel.dropna(how="any",inplace=True)
+ali_excel.columns
+Çekilen excel'den ilgili olan sütunun verilerinin liste olarak kaydedilmesi
+gpt_send_list = ali_excel.sort_values("Niederländisch")["Niederländisch"].tolist()
+gpt_send_list = list(set(gpt_send_list))
+gpt_send_list.sort()
+GPT API'sine bağlanmak ve alınan cevapların listeye kaydedilmesi
+openai.api_key = "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" #API-KEY
+openai.organization = "org-wYS7qABGZwCJIrG7SsM57GJB" #API-ORG ID
+​
+#GPT'DEN ALINACAK CEVABA AİT FONKSİYON
+def GPT_Response(text):
+    response = openai.ChatCompletion.create(model="gpt-3.5-turbo-0301",
+    messages=[
+        {"role": "system", "content": text},
+    ],
+    temperature=0
+    )
+    response_txt = pd.DataFrame(response["choices"])["message"].values[0]["content"]
+    return response_txt
+        
+#GPT'DEN ALINACAK CEVAPLARIN LİSTEYE YAZILMASI 
+gpt_response_liste = []
+for item in gpt_send_list:
+    gpt_response_liste.append(GPT_Response(item).split("\n"))
+Type Markdown and LaTeX: 𝛼2
+​
+​
+​
+index_list = list(set(ali_excel["Niederländisch"].values))
+​
+#İNDEX LİSTESİNİ VE BULLET_POİNT LİSTESİNİ EŞ ZAMANLI OLARAK FOR DÖNGÜSÜNDE DÖNDÜRÜP
+#BOŞ EXCEL TABLOSUNDA HER BİR İNDEX İÇİN DOLDURUYORUZ
+​
+for index,item in zip(index_list, gpt_response_liste):
+    ali_excel.loc[index, "Bullet_Points1":] = item
+​
+​
+ali_excel_boş.sort_values(by="Posisyon",inplace=True)
+ali_excel.to_excel("C:\\Users\\Ali\\Desktop\\Carpettex_Bullet Points_NL - Kopya.xlsx", index=False)
